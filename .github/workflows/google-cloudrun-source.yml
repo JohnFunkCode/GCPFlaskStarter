@@ -22,6 +22,10 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY_JSON }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           source: './'
+          service: ${{ secrets.GCP_PROJECT_ID }}
+          with secrets |
+            SA_KEY_JSON: ${{ secrets.GCP_SA_KEY_JSON }}
+            PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
       # Build and push image to Google Container Registry
       - name: Build
