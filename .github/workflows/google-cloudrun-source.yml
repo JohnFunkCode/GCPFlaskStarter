@@ -1,35 +1,41 @@
 # .github/workflows/deploy.yml
-name: Deploy to Cloud Run
+name: Deploy to Cloud Run from Source
 on:
   push:
     branches:
       - main
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  RUN_REGION: us-west1
+  SERVICE: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-west1
   SA_KEY_JSON: ${{ secrets.GCP_SA_KEY_JSON }}
+
 jobs:
   deploy:
-    name: Deploy to Cloud Run
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    name: Deploy to Cloud Run from Source
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # Setup gcloud CLI
-      - uses: google-github-actions/deploy-cloudrun@v2
+      - name: Google Auth
+        id: auth
+        uses: 'google-github-actions/auth@v0'
         with:
-          version: "290.0.1"
-          service_account_key: ${{ secrets.GCP_SA_KEY_JSON }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          source: './'
-          service: ${{ secrets.GCP_PROJECT_ID }}
-          with secrets |
-            SA_KEY_JSON: ${{ secrets.GCP_SA_KEY_JSON }}
-            PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          credentials_json: '${{ secrets.GCP_SA_KEY_JSON }}'
 
-      # Build and push image to Google Container Registry
-      - name: Build
-        run: gcloud builds submit --tag gcr.io/$PROJECT_ID/$PROJECT_ID:$GITHUB_SHA
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          # NOTE: If required, update to the appropriate source folder
+          source: ./
 
-      - name: Deploy
-        run: gcloud run deploy $PROJECT_ID --image gcr.io/$PROJECT_ID/$PROJECT_ID:$GITHUB_SHA --platform managed --region $RUN_REGION
+      # If required, use the Cloud Run url output in later steps
+      - name: Show Output
+        run: echo ${{ steps.deploy.outputs.url }}
