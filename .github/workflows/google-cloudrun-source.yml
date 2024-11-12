@@ -14,9 +14,9 @@ jobs:
 
   unit-test:
     runs-on: ubuntu-latest
-    name: Test
+    name: Unit Test
     steps:
-      - name: Unit Tests
+      - name:
         uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v5
