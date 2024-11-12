@@ -12,11 +12,11 @@ env:
 
 jobs:
 
-  test:
+  unit-test:
     runs-on: ubuntu-latest
     name: Test
     steps:
-      - name: Test
+      - name: Unit Tests
         uses: actions/checkout@v4
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -59,3 +59,18 @@ jobs:
       # If required, use the Cloud Run url output in later steps
       - name: Show Output
         run: echo ${{ steps.deploy.outputs.url }}
+
+  validation-test:
+    runs-on: ubuntu-latest
+    name: Validation Test
+    needs:
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Test REST Endpoint
+        run: |
+          RESPONSE=$(curl --write-out '%{http_code}' --silent --output /dev/null https://gcpflaskstarter-441218-424364818714.us-west1.run.app)
+          if [ "$RESPONSE" -ne 200 ]; then
+            echo "REST endpoint returned status code $RESPONSE"
+            exit 1
+          fi
