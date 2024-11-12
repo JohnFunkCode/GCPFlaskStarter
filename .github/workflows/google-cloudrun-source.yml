@@ -11,6 +11,23 @@ env:
   SA_KEY_JSON: ${{ secrets.GCP_CREDENTIALS }}
 
 jobs:
+
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          run: |
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+      - name: Test
+        run: python -m pytest
+
   deploy:
     permissions:
       contents: 'read'
